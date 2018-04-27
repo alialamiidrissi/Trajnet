@@ -2,6 +2,17 @@
 
 This repository contains functions to preprocess and plot the datasets for the Trajnet challenge
 
+## How to generated the preprocessed data and 'dataset_specs.csv' file ?
+
+- To generate the preprocessed data, run the 'transformed\_trajectories\_generation.py' script as follow :
+
+`python transformed_trajectories_generation.py --output_folder [output_folder_path] --path_to_data [path_to_the_original_Trajnet_datasets]`
+
+- To generate the'dataset_specs.csv' file, run the 'csv\_specs\_generator.py' script as follow :
+
+`python csv_specs_generator.py --output_file [output_csv_file_name] --path_to_data [path_to_the_original_Trajnet_datasets]`
+
+
 ## Files description
 
 - **plotting\_tools.py**: Python functions to plots the datasets

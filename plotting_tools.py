@@ -1,16 +1,11 @@
-
 import numpy as np 
 import pandas as pd 
 from trajectories_trans_tools import *
 import matplotlib
 import matplotlib.pyplot as plt 
-import matplotlib.patches as mpatches
 import torch
 import random
-import functools
-import seaborn as sns
 import os
-import matplotlib.ticker as ticker
 
 def draw_heatmap(trajectories,size =32,min_bounds= None,max_bounds= None):
 	'''

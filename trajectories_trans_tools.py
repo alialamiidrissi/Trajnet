@@ -1,14 +1,9 @@
 import numpy as np 
 import pandas as pd 
-import matplotlib
-import matplotlib.pyplot as plt 
-import matplotlib.patches as mpatches
 import torch
 import random
 import functools
-import seaborn as sns
 import os
-import matplotlib.ticker as ticker
 
 
 def compute_speeds(a):
@@ -195,7 +190,7 @@ def generate_tracklets(scene,factor = 10,compute_neighbors=True,neighboring_dist
 	return final_tracklets
 
 
-	def transform_tracklets_trajectories(trajs,compute_neighbors=True):
+def transform_tracklets_trajectories(trajs,compute_neighbors=True):
 	'''
 	Transform each tracklet (trajectory and its neighbors) by rotating the center trajectory and its neighbors 
 	around the center trajectory first point so that the center trajectory starts facing up. Then translate the tracklet trajectories

@@ -212,7 +212,7 @@ def plot_tracklet(tracklet,xlim=[-100,100],ylim=[-100,100],n=5):
         dist = torch.mean(torch.sum((center_track-neighbors)**2,1))
         sorting_list.append(dist)
     
-    sorted_args = np.argsort(-np.array(sorting_list))[:n]
+    sorted_args = np.argsort(np.array(sorting_list))[:n]
     
     
     for neighb_idx in sorted_args:

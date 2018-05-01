@@ -1,16 +1,17 @@
-import numpy as np 
-import pandas as pd 
+import numpy as np
+import pandas as pd
 from trajectories_trans_tools import *
 import matplotlib
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import torch
 import random
 import os
 
-def draw_heatmap(trajectories,size =32,min_bounds= None,max_bounds= None):
+
+def draw_heatmap(trajectories, size=32, min_bounds=None, max_bounds=None):
 	'''
 	Compute a  heatmap of the trajectories passed in parameter
-	
+
 	Parameters
 	----------
 	trajectories : pytorch tensor of size (nb_trajectories*nb_frames*2)
@@ -24,29 +25,32 @@ def draw_heatmap(trajectories,size =32,min_bounds= None,max_bounds= None):
 	max_bounds : Pytorch ensor of size (2) specifying the maximum x and y positions.
 	increments : Pytorch Tensor of size (2) specifying the discretization steps for the x and y axis respectively
 	'''
-	grid = en_cuda(torch.zeros(size,size))
-	reshaped_traj_tr = trajectories[:,:8,:][:,:,[2,3]].view(-1,2)
-	reshaped_traj_te = trajectories[:,8:,:][:,:,[2,3]].view(-1,2)
-	reshaped_traj = trajectories[:,:,:][:,:,[2,3]].view(-1,2)
+	grid = en_cuda(torch.zeros(size, size))
+	reshaped_traj_tr = trajectories[:, :8, :][:, :, [2, 3]].view(-1, 2)
+	reshaped_traj_te = trajectories[:, 8:, :][:, :, [2, 3]].view(-1, 2)
+	reshaped_traj = trajectories[:, :, :][:, :, [2, 3]].view(-1, 2)
 	if min_bounds is None:
-		min_bounds,_ = torch.min(reshaped_traj,0)
+		min_bounds, _ = torch.min(reshaped_traj, 0)
 	if max_bounds is None:
-		max_bounds,_ = torch.max(reshaped_traj,0)
-	increments = (max_bounds.sub(min_bounds)).div(size-1)
-	coordinates = torch.clamp(size - torch.floor(reshaped_traj_tr.sub(min_bounds).div(increments)).type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)-1,0,size-1)
-	print( torch.min(reshaped_traj,0), torch.max(reshaped_traj,0))
-	indices = torch.mul(coordinates[:,0],size).add(coordinates[:,1])
-	grid.put_(indices,en_cuda(torch.Tensor([1])).expand_as(indices))
-	coordinates = size - torch.floor(reshaped_traj_te.sub(min_bounds).div(increments)).type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)-1
-	indices = torch.mul(coordinates[:,0],size).add(coordinates[:,1])
-	grid.put_(indices,en_cuda(torch.Tensor([3])).expand_as(indices),accumulate=True)
-	return grid.transpose(1,0),(min_bounds,max_bounds,increments)
+		max_bounds, _ = torch.max(reshaped_traj, 0)
+	increments = (max_bounds.sub(min_bounds)).div(size - 1)
+	coordinates = torch.clamp(size - torch.floor(reshaped_traj_tr.sub(min_bounds).div(increments)).type(
+	    torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor) - 1, 0, size - 1)
+	print(torch.min(reshaped_traj, 0), torch.max(reshaped_traj, 0))
+	indices = torch.mul(coordinates[:, 0], size).add(coordinates[:, 1])
+	grid.put_(indices, en_cuda(torch.Tensor([1])).expand_as(indices))
+	coordinates = size - torch.floor(reshaped_traj_te.sub(min_bounds).div(increments)).type(
+	    torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor) - 1
+	indices = torch.mul(coordinates[:, 0], size).add(coordinates[:, 1])
+	grid.put_(indices, en_cuda(torch.Tensor(
+	    [3])).expand_as(indices), accumulate=True)
+	return grid.transpose(1, 0), (min_bounds, max_bounds, increments)
 
 
-def draw_discretized_trajs(trajectories,size =32,min_bounds= None,max_bounds= None):
+def draw_discretized_trajs(trajectories, size=32, min_bounds=None, max_bounds=None):
 	'''
 	compute a discretized representation of  trajectories passed in parameter
-	
+
 	Parameters
 	----------
 	trajectories : pytorch tensor of size (nb_trajectories*nb_frames*2)
@@ -60,33 +64,34 @@ def draw_discretized_trajs(trajectories,size =32,min_bounds= None,max_bounds= No
 	max_bounds : Pytorch ensor of size (2) specifying the maximum x and y positions.
 	increments : Pytorch Tensor of size (2) specifying the discretization steps for the x and y axis respectively
 	'''
-	grid = en_cuda(torch.zeros(size,size))
-	reshaped_traj_tr = trajectories[:,:8,:][:,:,[2,3]].view(-1,2)
-	reshaped_traj_te = trajectories[:,8:,:][:,:,[2,3]].view(-1,2)
-	reshaped_traj = trajectories[:,:,:][:,:,[2,3]].view(-1,2)
+	grid = en_cuda(torch.zeros(size, size))
+	reshaped_traj_tr = trajectories[:, :8, :][:, :, [2, 3]].view(-1, 2)
+	reshaped_traj_te = trajectories[:, 8:, :][:, :, [2, 3]].view(-1, 2)
+	reshaped_traj = trajectories[:, :, :][:, :, [2, 3]].view(-1, 2)
 	if min_bounds is None:
-		min_bounds,_ = torch.min(reshaped_traj,0)
+		min_bounds, _ = torch.min(reshaped_traj, 0)
 	if max_bounds is None:
-		max_bounds,_ = torch.max(reshaped_traj,0)
-	increments = (max_bounds.sub(min_bounds)).div(size-1)
-	coordinates = torch.clamp(size - torch.floor(reshaped_traj_tr.sub(min_bounds).div(increments)).type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)-1,0,size-1)
-	print( torch.min(reshaped_traj,0), torch.max(reshaped_traj,0))
-	indices = torch.mul(coordinates[:,0],size).add(coordinates[:,1])
+		max_bounds, _ = torch.max(reshaped_traj, 0)
+	increments = (max_bounds.sub(min_bounds)).div(size - 1)
+	coordinates = torch.clamp(size - torch.floor(reshaped_traj_tr.sub(min_bounds).div(increments)).type(
+	    torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor) - 1, 0, size - 1)
+	print(torch.min(reshaped_traj, 0), torch.max(reshaped_traj, 0))
+	indices = torch.mul(coordinates[:, 0], size).add(coordinates[:, 1])
 
-	grid.put_(indices,en_cuda(torch.Tensor([1])).expand_as(indices))
-	coordinates = size - torch.floor(reshaped_traj_te.sub(min_bounds).div(increments)).type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)-1
-	indices = torch.mul(coordinates[:,0],size).add(coordinates[:,1])
+	grid.put_(indices, en_cuda(torch.Tensor([1])).expand_as(indices))
+	coordinates = size - torch.floor(reshaped_traj_te.sub(min_bounds).div(increments)).type(
+	    torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor) - 1
+	indices = torch.mul(coordinates[:, 0], size).add(coordinates[:, 1])
+
+	grid.put_(indices, en_cuda(torch.Tensor(
+	    [3])).expand_as(indices), accumulate=True)
+	return grid.transpose(1, 0), (min_bounds, max_bounds, increments)
 
 
-	grid.put_(indices,en_cuda(torch.Tensor([3])).expand_as(indices),accumulate=True)
-	return grid.transpose(1,0),(min_bounds,max_bounds,increments)
-
-
-
-def draw_all_trajectories(arr,xticks,yticks):
+def draw_all_trajectories(arr, xticks, yticks):
 	'''
 	Draw all the trajectories in arr
-	
+
 	Parameters
 	----------
 	arr : list of pytorch tensor of size (nb_frames,2)
@@ -100,27 +105,29 @@ def draw_all_trajectories(arr,xticks,yticks):
 	idx = 0
 	plot_label = True
 	for elem in arr:
-		idx +=1
+		idx += 1
 		print(idx)
 		elem = elem.cpu().numpy()
-		if plot_label: 
-			plt.plot(elem[:,2][:8],elem[:,3][:8],'r.-',label = 'Observed steps')
-			plt.plot(elem[:,2][7:],elem[:,3][7:],'g.-',label = 'Steps to be Predicted')
+		if plot_label:
+			plt.plot(elem[:, 2][:8], elem[:, 3][:8], 'r.-', label='Observed steps')
+			plt.plot(elem[:, 2][7:], elem[:, 3][7:],
+			         'g.-', label='Steps to be Predicted')
 			plot_label = False
 		else:
-			plt.plot(elem[:,2][:8],elem[:,3][:8],'r.-',label = 'Observed steps')
-			plt.plot(elem[:,2][7:],elem[:,3][7:],'g.-',label = 'Steps to be Predicted')
-		if len(elem[:,2]) != 20:
+			plt.plot(elem[:, 2][:8], elem[:, 3][:8], 'r.-', label='Observed steps')
+			plt.plot(elem[:, 2][7:], elem[:, 3][7:],
+			         'g.-', label='Steps to be Predicted')
+		if len(elem[:, 2]) != 20:
 			print(elem.shape)
 	plt.xticks(xticks)
 	plt.yticks(yticks)
 	plt.legend()
 
 
-def plot_hists(folder_name,features,df,range_ = None):
+def plot_hists(folder_name, features, df, range_=None):
 	'''
 	Draw Histograms of the specified feature based on csv file generated by 'csv_specs_generators.py'
-	
+
 	Parameters
 	----------
 	folder_name : folder where the histograms will be saved
@@ -139,58 +146,58 @@ def plot_hists(folder_name,features,df,range_ = None):
 	'''
 
 	# Group trajectories specs by file
-	for file,x in df.groupby('File'):
+	for file, x in df.groupby('File'):
 		fig, ax = plt.subplots()
 		fig.set_size_inches(10, 10)
-		data =[]
+		data = []
 		for feature in features:
 			el = x[feature]
 			if len(x[feature]) == 1:
 				el = el.append(x[feature])
 			data.append(el)
-			
+
 		if range_ is not None:
 			plt.xticks(range_)
-			ax.hist(data,bins = range_,label = features,alpha = 0.5)
-		else :
-			ax.hist(el,label = features,ax=ax)
-		
-		_,labels = plt.xticks()
+			ax.hist(data, bins=range_, label=features, alpha=0.5)
+		else:
+			ax.hist(el, label=features, ax=ax)
+
+		_, labels = plt.xticks()
 		plt.setp(labels, rotation=30)
 		plt.legend()
-		plt.savefig(folder_name+'/'+'{}_{}.png'.format(x['Dataset'].iloc[0],file))
+		plt.savefig(folder_name + '/' +
+		            '{}_{}.png'.format(x['Dataset'].iloc[0], file))
 		plt.close()
 
 	# Group trajectories specs by dataset
-	for dts,x in df.groupby('Dataset'):
+	for dts, x in df.groupby('Dataset'):
 		fig, ax = plt.subplots()
 		fig.set_size_inches(10, 10)
-		data =[]
+		data = []
 		for feature in features:
 			el = x[feature]
 			if len(x[feature]) == 1:
 				el = el.append(x[feature])
 			data.append(el)
-			
+
 		if range_ is not None:
 			plt.xticks(range_)
-			ax.hist(data,bins = range_,label = features,alpha = 0.5)
-		else :
-			ax.hist(el,label = features,ax=ax)
+			ax.hist(data, bins=range_, label=features, alpha=0.5)
+		else:
+			ax.hist(el, label=features, ax=ax)
 		plt.legend()
-		_,labels = plt.xticks()
-		
+		_, labels = plt.xticks()
+
 		plt.setp(labels, rotation=30)
-		
-		plt.savefig(folder_name+'/'+'{}.png'.format(x['Dataset'].iloc[0]))
+
+		plt.savefig(folder_name + '/' + '{}.png'.format(x['Dataset'].iloc[0]))
 		plt.close()
 
 
-
-def plot_tracklet(tracklet,xlim=[-100,100],ylim=[-100,100],n=5):
+def plot_tracklet(tracklet, xlim=[-100, 100], ylim=[-100, 100], n=5):
 	'''
 	Plots a trajectory with its nearest n neighbors
-	
+
 	Parameters
 	----------
 	tracklet : tupple (trajectory,list of neighbors)

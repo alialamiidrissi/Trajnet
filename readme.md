@@ -22,8 +22,8 @@ This repository contains functions to preprocess and plot the datasets for the T
 - **Preprocessed\_data.zip**: Zip file containing the preprocessed datasets and has the following structure:
 	- Every folder contains all trajectories for a given dataset
 	- Every preprocessed trajectory is saved in a separate file named '[file]\_[ped\_id].txt'.
-	- The first 20 frames of every file corresponds to the preprocessed trajectory with id = ped\_id
-	- The remaining entries correspond to the preprocessed trajectory neighbors
+	- The first 20 frames of every file correspond to the preprocessed pedestrian trajectory with id = ped\_id
+	- The remaining entries correspond to the preprocessed pedestrian neighbors
 - **dataset\_specs.csv**: CSV file containing information about every pedestrian in every dataset.Its columns are described below:
 	- **Dataset**: This column specifies the pedestrian dataset
 	- **File**: This column specifies the pedestrian file

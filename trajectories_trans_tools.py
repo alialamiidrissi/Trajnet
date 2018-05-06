@@ -93,7 +93,7 @@ def en_cuda(tensor):
         return tensor
 
 
-def generate_tracklets(scene, factor=10, compute_neighbors=True, neighboring_dist=6):
+def generate_tracklets(scene, factor=10, compute_neighbors=True, neighboring_dist=6, compute_specs=True):
     '''
     Group trajectories with their respective neighbors
 
@@ -166,34 +166,36 @@ def generate_tracklets(scene, factor=10, compute_neighbors=True, neighboring_dis
                 select = neighb[(neighb[0] >= min_frame) & (
                     neighb[0] <= max_frame)].as_matrix()
                 # distance of neighbors to center pedestrian
-
-                idx_frame = None
-                is_critical_neighb = False
-                for neighb_pos in select:
-                    if idx_frame is None:
-                        idx_frame = (x[0] == neighb_pos[0]).nonzero()[0][0]
-                    else:
-                        idx_frame += 1
-                    distance = (neighb_pos[2] - x.iloc[idx_frame, 2]
-                                )**2 + (neighb_pos[3] - x.iloc[idx_frame, 3])**2
-                    # Check if the neighbor is close to the center trajectory
-                    if distance <= neighboring_dist:
-                        mean_contact += 1
-                        mean_nb_critical_neighbors[idx_frame] += 1
-                        is_critical_neighb = True
-                if is_critical_neighb:
-                    nb_critical_neighbors += 1
+                if compute_specs:
+                    idx_frame = None
+                    is_critical_neighb = False
+                    for neighb_pos in select:
+                        if idx_frame is None:
+                            idx_frame = (x[0] == neighb_pos[0]).nonzero()[0][0]
+                        else:
+                            idx_frame += 1
+                        distance = (neighb_pos[2] - x.iloc[idx_frame, 2]
+                                    )**2 + (neighb_pos[3] - x.iloc[idx_frame, 3])**2
+                        # Check if the neighbor is close to the center
+                        # trajectory
+                        if distance <= neighboring_dist:
+                            mean_contact += 1
+                            mean_nb_critical_neighbors[idx_frame] += 1
+                            is_critical_neighb = True
+                    if is_critical_neighb:
+                        nb_critical_neighbors += 1
                 buffer_neighbors.append(en_cuda(torch.Tensor(select)))
 
             spec = {}
-            spec['neighb'] = set_neighb
-            spec['nb_critical_neighb'] = nb_critical_neighbors
-            spec['mean_nb_neighbors_per_frame'] = mean_nb_neighbors / 20
-            spec['mean_nb_critical_neighbors_per_frame'] = functools.reduce(
-                lambda x, y: x + y, mean_nb_critical_neighbors) / 20.0
-            spec['mean_contact'] = mean_contact / \
-                float(nb_critical_neighbors) if nb_critical_neighbors > 0 else 0
-            spec['ped_id_grp_pos_mapping'] = ped_id_grp_pos_mapping
+            if compute_specs:
+                spec['neighb'] = set_neighb
+                spec['nb_critical_neighb'] = nb_critical_neighbors
+                spec['mean_nb_neighbors_per_frame'] = mean_nb_neighbors / 20
+                spec['mean_nb_critical_neighbors_per_frame'] = functools.reduce(
+                    lambda x, y: x + y, mean_nb_critical_neighbors) / 20.0
+                spec['mean_contact'] = mean_contact / \
+                    float(nb_critical_neighbors) if nb_critical_neighbors > 0 else 0
+                spec['ped_id_grp_pos_mapping'] = ped_id_grp_pos_mapping
             final_tracklets.append(
                 (en_cuda(torch.Tensor(x.as_matrix())), buffer_neighbors, spec))
         else:

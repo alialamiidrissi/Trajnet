@@ -9,8 +9,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--path_to_data", help="Path to the original Trajnet data")
-parser.add_argument("--output_folder", help="output transfomed data folder")
+parser.add_argument(
+    "--path_to_data", help="Path to the original Trajnet data", required=True)
+parser.add_argument("--output_folder",
+                    help="output transfomed data folder", required=True)
 args = parser.parse_args()
 path = args.path_to_data
 
@@ -29,7 +31,8 @@ for dataset in os.listdir(path):
             if(not file.startswith('.')):
                 print('\ttransforming {}'.format(file))
                 # Load tracklets and transform them
-                res = generate_tracklets(path + '/' + dataset + '/' + file)
+                res = generate_tracklets(
+                    path + '/' + dataset + '/' + file, factor=1, compute_specs=False)
                 res = transform_tracklets_trajectories(res)
                 for ped in res:
                     data_saved = np.concatenate([ped[0].numpy(), torch.cat(
